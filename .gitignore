@@ -1,15 +1,18 @@
 #Training Data and Logs
-models/FACT_actseg/data
-models/FACT_actseg/log
-models/FACT_actseg/log_test
+models/FACT_actseg/data/
+models/FACT_actseg/log/
+models/FACT_actseg/log_test/
 
 # VSCode and Cursor files
-models/FACT_actseg/src/.vscode
-models/FACT_actseg/src/.history
-models/FACT_actseg/src/.cursor
+models/FACT_actseg/src/.vscode/
+models/FACT_actseg/src/.history/
+models/FACT_actseg/src/.cursor/
 models/FACT_actseg/src/.gitignore
 models/FACT_actseg/src/.gitignore
 
-#.cursor rules
+# Cursor rules
 .cursor/rules/project-overview.mdc
 .cursor/rules/fact-viz.mdc
+
+# Cursor history
+.cursor/history/
