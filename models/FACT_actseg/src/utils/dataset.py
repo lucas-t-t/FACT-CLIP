@@ -134,6 +134,38 @@ class DataLoader():
 #------------------------------------------------------------------
 #------------------------------------------------------------------
 
+def video_contains_holdout_classes(vname, groundTruth_path, label2index, holdout_classes):
+    """
+    Check if a video contains any holdout classes.
+    
+    Args:
+        vname: Video name (without extension)
+        groundTruth_path: Path to groundTruth directory
+        label2index: Mapping from label string to class index
+        holdout_classes: List of class indices to check for
+        
+    Returns:
+        True if video contains any holdout class, False otherwise
+    """
+    try:
+        with open(os.path.join(groundTruth_path, vname + '.txt'), 'rb') as f:
+            raw_content = f.read().replace(b'\r\n', b'\n')
+        try:
+            content = raw_content.decode('utf-8')
+        except UnicodeDecodeError:
+            content = raw_content.decode('latin-1')
+        
+        labels = [label2index[line] for line in content.split('\n')[:-1] if line in label2index]
+        
+        # Check if any label is in holdout_classes
+        for label in labels:
+            if label in holdout_classes:
+                return True
+        return False
+    except Exception as e:
+        print(f"Warning: Could not read labels for video {vname}: {e}")
+        return False
+
 def create_dataset(cfg: CfgNode):
 
     if cfg.dataset == "breakfast":
@@ -262,7 +294,37 @@ def create_dataset(cfg: CfgNode):
         if cfg.dataset in ['breakfast', '50salads', 'gtea']: 
             video_list = [ v[:-4] for v in video_list ] 
         elif cfg.dataset.startswith('havid'):
-            video_list = [ v[:-4] for v in video_list if v.endswith('.txt') ] 
+            video_list = [ v[:-4] for v in video_list if v.endswith('.txt') ]
+        
+        # Apply holdout filtering if enabled
+        if cfg.holdout_mode and len(cfg.holdout_classes) > 0:
+            original_count = len(video_list)
+            holdout_classes = list(cfg.holdout_classes)
+            
+            print(f"\n{'='*80}")
+            print(f"HOLDOUT MODE ENABLED")
+            print(f"{'='*80}")
+            print(f"Holdout classes: {holdout_classes}")
+            print(f"Holdout class names: {[index2label[c] for c in holdout_classes if c in index2label]}")
+            print(f"Original training videos: {original_count}")
+            
+            # Filter out videos containing any holdout class
+            filtered_video_list = []
+            removed_videos = []
+            for vname in video_list:
+                if video_contains_holdout_classes(vname, groundTruth_path, label2index, holdout_classes):
+                    removed_videos.append(vname)
+                else:
+                    filtered_video_list.append(vname)
+            
+            video_list = filtered_video_list
+            print(f"Videos removed (contain holdout classes): {len(removed_videos)}")
+            print(f"Remaining training videos: {len(video_list)} ({100*len(video_list)/original_count:.1f}%)")
+            print(f"{'='*80}\n")
+            
+            if len(video_list) == 0:
+                raise ValueError("No training videos remaining after holdout filtering!")
+        
         dataset = Dataset(video_list, nclasses, load_video, bg_class)
         
     dataset.average_transcript_len = average_transcript_len
@@ -271,5 +333,19 @@ def create_dataset(cfg: CfgNode):
     test_dataset.average_transcript_len = average_transcript_len
     test_dataset.label2index = label2index
     test_dataset.index2label = index2label
+    
+    # Add holdout information for evaluation
+    if cfg.holdout_mode and len(cfg.holdout_classes) > 0:
+        holdout_classes_list = list(cfg.holdout_classes)
+        seen_classes = [c for c in range(nclasses) if c not in holdout_classes_list]
+        dataset.holdout_classes = holdout_classes_list
+        dataset.seen_classes = seen_classes
+        test_dataset.holdout_classes = holdout_classes_list
+        test_dataset.seen_classes = seen_classes
+    else:
+        dataset.holdout_classes = []
+        dataset.seen_classes = list(range(nclasses))
+        test_dataset.holdout_classes = []
+        test_dataset.seen_classes = list(range(nclasses))
 
     return dataset, test_dataset

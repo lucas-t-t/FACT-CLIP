@@ -18,7 +18,16 @@ from .models.loss import MatchCriterion
 def evaluate(global_step, net, testloader, run, savedir):
     print("TESTING" + "~"*10)
 
-    ckpt = Checkpoint(global_step+1, bg_class=([] if net.cfg.eval_bg else testloader.dataset.bg_class))
+    # Get holdout information from dataset
+    holdout_classes = getattr(testloader.dataset, 'holdout_classes', [])
+    seen_classes = getattr(testloader.dataset, 'seen_classes', [])
+    
+    ckpt = Checkpoint(
+        global_step+1, 
+        bg_class=([] if net.cfg.eval_bg else testloader.dataset.bg_class),
+        holdout_classes=holdout_classes,
+        seen_classes=seen_classes
+    )
     net.eval()
     with torch.no_grad():
         for batch_idx, (vnames, seq_list, train_label_list, eval_label_list) in enumerate(testloader):
@@ -33,14 +42,46 @@ def evaluate(global_step, net, testloader, run, savedir):
 
     log_dict = {}
     string = ""
+    
+    # Log standard metrics
     for k, v in ckpt.metrics.items():
         string += "%s:%.1f, " % (k, v)
-        log_dict[f'test-metric/{k}'] = v
+        # Organize metrics by type for wandb
+        if '-seen' in k:
+            log_dict[f'test-metric-seen/{k.replace("-seen", "")}'] = v
+        elif '-unseen' in k:
+            log_dict[f'test-metric-unseen/{k.replace("-unseen", "")}'] = v
+        else:
+            log_dict[f'test-metric-all/{k}'] = v
+    
     print(string + '\n')
+    
+    # Print holdout-specific summary if applicable
+    if len(holdout_classes) > 0:
+        print("="*80)
+        print("HOLDOUT EVALUATION SUMMARY")
+        print("="*80)
+        print(f"Seen classes: {len(seen_classes)}")
+        print(f"Unseen (holdout) classes: {len(holdout_classes)}")
+        if 'Acc-seen' in ckpt.metrics:
+            print(f"Accuracy (seen): {ckpt.metrics['Acc-seen']:.1f}%")
+        if 'Acc-unseen' in ckpt.metrics:
+            print(f"Accuracy (unseen): {ckpt.metrics['Acc-unseen']:.1f}%")
+        if 'F1@0.50-seen' in ckpt.metrics:
+            print(f"F1@0.50 (seen): {ckpt.metrics['F1@0.50-seen']:.1f}%")
+        if 'F1@0.50-unseen' in ckpt.metrics:
+            print(f"F1@0.50 (unseen): {ckpt.metrics['F1@0.50-unseen']:.1f}%")
+        print("="*80 + "\n")
+    
     run.log(log_dict, step=global_step+1)
 
     fname = "%d.gz" % (global_step+1) 
     ckpt.save(os.path.join(savedir, fname))
+    
+    # Save detailed results for holdout experiments
+    if len(holdout_classes) > 0:
+        detail_fname = os.path.join(savedir, f"{global_step+1}_detailed.json")
+        ckpt.save_detailed_results(detail_fname)
 
     return ckpt
 
@@ -136,7 +177,30 @@ if __name__ == '__main__':
 
     ### start training #########################################################
     start_epoch = global_step // len(trainloader)
-    ckpt = Checkpoint(-1, bg_class=([] if net.cfg.eval_bg else testloader.dataset.bg_class), eval_edit=False)
+    
+    # Get holdout information from dataset
+    holdout_classes = getattr(testloader.dataset, 'holdout_classes', [])
+    seen_classes = getattr(testloader.dataset, 'seen_classes', [])
+    
+    # Log holdout information
+    if cfg.holdout_mode and len(holdout_classes) > 0:
+        print("\n" + "="*80)
+        print("HOLDOUT TRAINING MODE")
+        print("="*80)
+        print(f"Holdout (unseen) classes: {len(holdout_classes)}")
+        print(f"Seen classes: {len(seen_classes)}")
+        print(f"Holdout class IDs: {holdout_classes}")
+        if hasattr(dataset, 'index2label'):
+            print(f"Holdout class names: {[dataset.index2label[c] for c in holdout_classes if c in dataset.index2label]}")
+        print("="*80 + "\n")
+    
+    ckpt = Checkpoint(
+        -1, 
+        bg_class=([] if net.cfg.eval_bg else testloader.dataset.bg_class), 
+        eval_edit=False,
+        holdout_classes=holdout_classes,
+        seen_classes=seen_classes
+    )
     best_ckpt, best_metric = None, 0
 
     print(f'Start Training from Epoch {start_epoch}...')
@@ -179,7 +243,13 @@ if __name__ == '__main__':
 
                 run.log(log_dict, step=global_step+1)
 
-                ckpt = Checkpoint(-1, bg_class=(dataset.bg_class if cfg.eval_bg else []), eval_edit=False)
+                ckpt = Checkpoint(
+                    -1, 
+                    bg_class=(dataset.bg_class if cfg.eval_bg else []), 
+                    eval_edit=False,
+                    holdout_classes=holdout_classes,
+                    seen_classes=seen_classes
+                )
 
             # test and save model every x iterations
             if global_step != 0 and (global_step+1) % cfg.aux.eval_every == 0:
@@ -198,10 +268,15 @@ if __name__ == '__main__':
                 g['lr'] = cfg.lr * 0.1
             print('------------------------------------Update Learning rate--------------------------------')
 
-    print(f'Best Checkpoint: {best_ckpt.iteration}')
-    best_ckpt.eval_edit = True
-    best_ckpt.compute_metrics()
-    best_ckpt.save(os.path.join(logdir, 'best_ckpt.gz'))
+    # Save best checkpoint if evaluation occurred
+    if best_ckpt is not None:
+        print(f'Best Checkpoint: {best_ckpt.iteration}')
+        best_ckpt.eval_edit = True
+        best_ckpt.compute_metrics()
+        best_ckpt.save(os.path.join(logdir, 'best_ckpt.gz'))
+    else:
+        print('No evaluation performed during training (best checkpoint not available)')
+    
     run.finish()
 
     # create a file to mark this experiment has completed

@@ -21,6 +21,10 @@ _C.split = "split1"
 _C.sr = 1 # temporal down-sample rate
 _C.eval_bg = False # if including background frame in evaluation
 
+# zero-shot / holdout training
+_C.holdout_mode = False # enable holdout training mode
+_C.holdout_classes = [] # list of class indices to hold out during training
+
 # training
 _C.batch_size = 4
 _C.optimizer = "SGD"

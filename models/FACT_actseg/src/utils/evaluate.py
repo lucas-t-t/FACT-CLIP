@@ -81,12 +81,17 @@ class Video():
         return "< Video %s >" % self.vname
 
 class Checkpoint():
-    def __init__(self, iteration, bg_class=[], eval_edit=True):
+    def __init__(self, iteration, bg_class=[], eval_edit=True, holdout_classes=[], seen_classes=None):
         self.iteration = iteration
         self.videos = {}
 
         self.bg_class = bg_class
         self.eval_edit = eval_edit # turn off this can save computation time
+        
+        # Holdout/zero-shot evaluation
+        self.holdout_classes = holdout_classes if holdout_classes is not None else []
+        self.seen_classes = seen_classes if seen_classes is not None else []
+        self.per_class_metrics = {}  # Per-class accuracy tracking
 
     def add_videos(self, videos: list):
         for v in videos:
@@ -160,6 +165,65 @@ class Checkpoint():
             f1 = 2.0 * (precision*recall) / (precision+recall+1e-5)
             f1 = np.nan_to_num(f1)*100
             M['F1@%0.2f' % overlap[s]] = f1
+        
+        # Compute per-class metrics
+        unique_classes = np.unique(gt_)
+        for cls in unique_classes:
+            cls_mask = (gt_ == cls)
+            if cls_mask.sum() > 0:
+                cls_correct = correct[cls_mask].sum()
+                cls_total = cls_mask.sum()
+                self.per_class_metrics[int(cls)] = {
+                    'correct': int(cls_correct),
+                    'total': int(cls_total),
+                    'accuracy': float(cls_correct / cls_total * 100)
+                }
+        
+        # If holdout mode, compute separate metrics for seen/unseen/all
+        if len(self.holdout_classes) > 0:
+            # Seen classes metrics
+            seen_mask = np.array([g in self.seen_classes for g in gt_])
+            if seen_mask.sum() > 0:
+                M['Acc-seen'] = correct[seen_mask].mean() * 100
+                seen_fg_mask = seen_mask & fg_loc
+                if seen_fg_mask.sum() > 0:
+                    M['AccFG-seen'] = correct[seen_fg_mask].mean() * 100
+            
+            # Unseen classes metrics
+            unseen_mask = np.array([g in self.holdout_classes for g in gt_])
+            if unseen_mask.sum() > 0:
+                M['Acc-unseen'] = correct[unseen_mask].mean() * 100
+                unseen_fg_mask = unseen_mask & fg_loc
+                if unseen_fg_mask.sum() > 0:
+                    M['AccFG-unseen'] = correct[unseen_fg_mask].mean() * 100
+            
+            # Compute F1 scores for seen and unseen separately
+            for class_type, class_list in [('seen', self.seen_classes), ('unseen', self.holdout_classes)]:
+                tp_cls, fp_cls, fn_cls = np.zeros(3), np.zeros(3), np.zeros(3)
+                
+                for gt, pred in zip(gt_list, pred_list):
+                    # Filter segments to only include classes from class_list
+                    gt_segs_all = parse_label(gt)
+                    pred_segs_all = parse_label(pred)
+                    
+                    # Only keep segments of the target class type
+                    gt_segs = [seg for seg in gt_segs_all if seg.action in class_list]
+                    pred_segs = [seg for seg in pred_segs_all if seg.action in class_list]
+                    
+                    if len(gt_segs) > 0:  # Only compute if there are ground truth segments
+                        for s in range(len(overlap)):
+                            tp1, fp1, fn1 = f_score(pred_segs, gt_segs, overlap[s], bg_class=self.bg_class)
+                            tp_cls[s] += tp1
+                            fp_cls[s] += fp1
+                            fn_cls[s] += fn1
+                
+                for s in range(len(overlap)):
+                    if tp_cls[s] + fp_cls[s] + fn_cls[s] > 0:  # Only compute if there's data
+                        precision = tp_cls[s] / float(tp_cls[s]+fp_cls[s]+1e-5)
+                        recall = tp_cls[s] / float(tp_cls[s]+fn_cls[s]+1e-5)
+                        f1 = 2.0 * (precision*recall) / (precision+recall+1e-5)
+                        f1 = np.nan_to_num(f1)*100
+                        M[f'F1@{overlap[s]:.2f}-{class_type}'] = f1
 
         return M
 
@@ -178,3 +242,30 @@ class Checkpoint():
         self.metrics.update(m)
 
         return self.metrics
+    
+    def save_detailed_results(self, fname):
+        """Save detailed results including per-class and per-video metrics."""
+        import json
+        
+        results = {
+            'iteration': self.iteration,
+            'metrics': dict(self.metrics),
+            'per_class_metrics': self.per_class_metrics,
+            'holdout_classes': self.holdout_classes,
+            'seen_classes': self.seen_classes,
+            'per_video_results': {}
+        }
+        
+        # Add per-video results
+        for vname, video in self.videos.items():
+            results['per_video_results'][vname] = {
+                'gt_label': video.gt_label.tolist() if hasattr(video.gt_label, 'tolist') else list(video.gt_label),
+                'pred_label': video.pred_label.tolist() if hasattr(video.pred_label, 'tolist') else list(video.pred_label),
+                'metrics': video.metrics if hasattr(video, 'metrics') else {}
+            }
+        
+        # Save to JSON
+        with open(fname, 'w') as f:
+            json.dump(results, f, indent=2)
+        
+        print(f"Detailed results saved to: {fname}")
