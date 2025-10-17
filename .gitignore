@@ -2,6 +2,11 @@
 models/FACT_actseg/data/
 models/FACT_actseg/log/
 models/FACT_actseg/log_test/
+data/
+data.zip
+
+#Environment files
+miniconda3/
 
 # VSCode and Cursor files
 models/FACT_actseg/src/.vscode/
@@ -11,8 +16,7 @@ models/FACT_actseg/src/.gitignore
 models/FACT_actseg/src/.gitignore
 
 # Cursor rules
-.cursor/rules/project-overview.mdc
-.cursor/rules/fact-viz.mdc
+.cursor/rules/
 
 # Cursor history
 .cursor/history/
