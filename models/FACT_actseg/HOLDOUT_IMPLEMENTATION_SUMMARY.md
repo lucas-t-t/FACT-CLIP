@@ -18,7 +18,7 @@ Successfully implemented zero-shot action segmentation evaluation for the FACT m
 **Usage**:
 ```bash
 python -m src.utils.analyze_holdout_classes \
-    --n_frequent 6 --n_medium 3 --min_test_videos 5
+    --n_frequent 6 --n_medium 4 --min_test_videos 3 --skip_top_n 5
 ```
 
 ### ✅ 2. Configuration Schema Extension

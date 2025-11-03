@@ -1,4 +1,4 @@
-# HAViD view0_lh_pt Holdout Training Configuration
+# HAViD view2_lh_pt Holdout Training Configuration
 # Zero-shot baseline: Train on seen classes, evaluate on all classes including unseen
 #
 # Selection Strategy: Skip top 5 most frequent, then select next 6 + 4 medium-frequency
@@ -91,13 +91,13 @@ aux:
   debug: false
   eval_every: 100  # Reduced for small dataset (17 videos = 8 batches/epoch)
   gpu: 0
-  mark: 'holdout_new_classes'
+  mark: 'holdout_zeroshot'
   print_every: 50  # More frequent logging for small dataset
   resume: max
   runid: 0
 batch_size: 2
 clip_grad_norm: 10.0
-dataset: havid_view0_lh_pt
+dataset: havid_view2_lh_pt
 epoch: 150
 eval_bg: true
 
