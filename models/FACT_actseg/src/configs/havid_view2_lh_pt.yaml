@@ -14,13 +14,13 @@ BU:
   s_layers: 1
 Bi:
   a: sca
-  a_dim: 512
+  a_dim: 256
   a_ffdim: 512
   a_layers: 6
   a_nhead: 8
   dropout: 0.0
-  f: m2
-  f_dim: 512
+  f: m
+  f_dim: 256
   f_layers: 10
   f_ln: false
   f_ngp: 1
@@ -42,9 +42,9 @@ FACT:
   block: iuUU
   cmr: 0.3
   fpos: false
-  ntoken: 40  # Adjusted for HAViD primitive tasks
-  trans: false
   mwt: 0.1
+  ntoken: 43
+  trans: false
 Loss:
   a2fc: 1.0
   bgw: 1.0
@@ -60,17 +60,17 @@ TM:
   use: true
 aux:
   debug: false
-  eval_every: 2000
+  eval_every: 500 #was 100, then 2000, then 1000, now 500  
   gpu: 0
-  mark: "view2_lh_pt"
-  print_every: 1000
+  mark: 'view2_lh_pt_clean_eval_500'
+  print_every: 50 #was 50, then 200, then 100, now 50
   resume: max
   runid: 0
-batch_size: 2  # Reduced for HAViD due to longer sequences
+batch_size: 2
 clip_grad_norm: 10.0
 dataset: havid_view2_lh_pt
-eval_bg: true
 epoch: 150
+eval_bg: true
 lr: 0.0001
 lr_decay: 80
 momentum: 0.0
@@ -78,12 +78,3 @@ optimizer: Adam
 split: split1
 sr: 1
 weight_decay: 0.0
-
-# HAViD-specific dataset paths for view2_lh_pt variant
-feature_path: "/cvhci/temp/lthomaz/models/FACT_actseg/data/HAViD/ActionSegmentation/data/features"
-groundTruth_path: "/cvhci/temp/lthomaz/models/FACT_actseg/data/HAViD/ActionSegmentation/data/view2_lh_pt/groundTruth"
-split_path: "/cvhci/temp/lthomaz/models/FACT_actseg/data/HAViD/ActionSegmentation/data/view2_lh_pt/splits"
-map_fname: "/cvhci/temp/lthomaz/models/FACT_actseg/data/HAViD/ActionSegmentation/data/view2_lh_pt/mapping.txt"
-feature_transpose: false
-bg_class: 0
-average_transcript_len: 0.0  # Will be computed by gen_config.py
