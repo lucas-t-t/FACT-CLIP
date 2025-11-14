@@ -21,6 +21,15 @@ _C.split = "split1"
 _C.sr = 1 # temporal down-sample rate
 _C.eval_bg = False # if including background frame in evaluation
 
+# dataset-specific paths (optional, used by HAViD and other datasets)
+_C.feature_path = None
+_C.groundTruth_path = None
+_C.split_path = None
+_C.map_fname = None
+_C.feature_transpose = False
+_C.bg_class = None
+_C.average_transcript_len = 0.0
+
 # zero-shot / holdout training
 _C.holdout_mode = False # enable holdout training mode
 _C.holdout_classes = [] # list of class indices to hold out during training
@@ -118,6 +127,19 @@ TM.t = 30
 TM.p = 0.05
 TM.m = 5
 TM.inplace = True
+
+#########################
+# CLIP configuration for open-vocabulary model
+_C.CLIP = CLIP = CN()
+CLIP.model_name = "openai/clip-vit-b-32"
+CLIP.text_trainable = True  # Fine-tune CLIP text encoder
+CLIP.temp = 0.07  # Initial temperature (learnable)
+CLIP.precompute_text = True  # Pre-compute text embeddings
+CLIP.use_prompt = True  # Use prompt engineering
+
+# Visual projection settings
+CLIP.projection_hidden_dim = 1024  # Hidden layer in projection
+CLIP.projection_dropout = 0.1  # Dropout in projection
 
 def get_cfg_defaults():
     return _C.clone()

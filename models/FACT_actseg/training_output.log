@@ -1,0 +1,206 @@
+wandb: WARNING `resume` will be ignored since W&B syncing is set to `offline`. Starting a new run with run id 4k5dk1sg.
+wandb: Tracking run with wandb version 0.16.2
+wandb: W&B syncing is set to `offline` in this directory.  
+wandb: Run `wandb online` or set WANDB_MODE=online to enable cloud syncing.
+wandb: You can sync this run to the cloud by running:
+wandb: wandb sync log/havid_view0_lh_pt/split1/openvocab_havid_view0_lh_pt_openvocab_view0_lh_pt/0/wandb/offline-run-20251104_161621-4k5dk1sg
+wandb: Find logs at: log/havid_view0_lh_pt/split1/openvocab_havid_view0_lh_pt_openvocab_view0_lh_pt/0/wandb/offline-run-20251104_161621-4k5dk1sg/logs
+Traceback (most recent call last):
+  File "/cvhci/temp/lthomaz/miniconda3/envs/fact/lib/python3.8/site-packages/huggingface_hub/utils/_http.py", line 402, in hf_raise_for_status
+    response.raise_for_status()
+  File "/cvhci/temp/lthomaz/miniconda3/envs/fact/lib/python3.8/site-packages/requests/models.py", line 1026, in raise_for_status
+    raise HTTPError(http_error_msg, response=self)
+requests.exceptions.HTTPError: 401 Client Error: Unauthorized for url: https://huggingface.co/openai/clip-vit-b-32/resolve/main/config.json
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/cvhci/temp/lthomaz/miniconda3/envs/fact/lib/python3.8/site-packages/transformers/utils/hub.py", line 403, in cached_file
+    resolved_file = hf_hub_download(
+  File "/cvhci/temp/lthomaz/miniconda3/envs/fact/lib/python3.8/site-packages/huggingface_hub/utils/_validators.py", line 114, in _inner_fn
+    return fn(*args, **kwargs)
+  File "/cvhci/temp/lthomaz/miniconda3/envs/fact/lib/python3.8/site-packages/huggingface_hub/file_download.py", line 1007, in hf_hub_download
+    return _hf_hub_download_to_cache_dir(
+  File "/cvhci/temp/lthomaz/miniconda3/envs/fact/lib/python3.8/site-packages/huggingface_hub/file_download.py", line 1114, in _hf_hub_download_to_cache_dir
+    _raise_on_head_call_error(head_call_error, force_download, local_files_only)
+  File "/cvhci/temp/lthomaz/miniconda3/envs/fact/lib/python3.8/site-packages/huggingface_hub/file_download.py", line 1655, in _raise_on_head_call_error
+    raise head_call_error
+  File "/cvhci/temp/lthomaz/miniconda3/envs/fact/lib/python3.8/site-packages/huggingface_hub/file_download.py", line 1543, in _get_metadata_or_catch_error
+    metadata = get_hf_file_metadata(
+  File "/cvhci/temp/lthomaz/miniconda3/envs/fact/lib/python3.8/site-packages/huggingface_hub/utils/_validators.py", line 114, in _inner_fn
+    return fn(*args, **kwargs)
+  File "/cvhci/temp/lthomaz/miniconda3/envs/fact/lib/python3.8/site-packages/huggingface_hub/file_download.py", line 1460, in get_hf_file_metadata
+    r = _request_wrapper(
+  File "/cvhci/temp/lthomaz/miniconda3/envs/fact/lib/python3.8/site-packages/huggingface_hub/file_download.py", line 283, in _request_wrapper
+    response = _request_wrapper(
+  File "/cvhci/temp/lthomaz/miniconda3/envs/fact/lib/python3.8/site-packages/huggingface_hub/file_download.py", line 307, in _request_wrapper
+    hf_raise_for_status(response)
+  File "/cvhci/temp/lthomaz/miniconda3/envs/fact/lib/python3.8/site-packages/huggingface_hub/utils/_http.py", line 452, in hf_raise_for_status
+    raise _format(RepositoryNotFoundError, message, response) from e
+huggingface_hub.errors.RepositoryNotFoundError: 401 Client Error. (Request ID: Root=1-690a18c6-0ed43b3929b9c25d793a4a8f;75776353-2621-4225-a84d-ea7939f6cd05)
+
+Repository Not Found for url: https://huggingface.co/openai/clip-vit-b-32/resolve/main/config.json.
+Please make sure you specified the correct `repo_id` and `repo_type`.
+If you are trying to access a private or gated repo, make sure you are authenticated. For more details, see https://huggingface.co/docs/huggingface_hub/authentication
+Invalid username or password.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/cvhci/temp/lthomaz/miniconda3/envs/fact/lib/python3.8/runpy.py", line 194, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "/cvhci/temp/lthomaz/miniconda3/envs/fact/lib/python3.8/runpy.py", line 87, in _run_code
+    exec(code, run_globals)
+  File "/cvhci/temp/lthomaz/models/FACT_actseg/src/train_openvocab.py", line 166, in <module>
+    net = FACT_OpenVocab(
+  File "/cvhci/temp/lthomaz/models/FACT_actseg/src/models/blocks_OpenVocab.py", line 111, in __init__
+    self.clip_text = CLIPTextEncoder(
+  File "/cvhci/temp/lthomaz/models/FACT_actseg/src/models/blocks_OpenVocab.py", line 20, in __init__
+    self.clip = CLIPModel.from_pretrained(clip_model_name)
+  File "/cvhci/temp/lthomaz/miniconda3/envs/fact/lib/python3.8/site-packages/transformers/modeling_utils.py", line 3506, in from_pretrained
+    resolved_config_file = cached_file(
+  File "/cvhci/temp/lthomaz/miniconda3/envs/fact/lib/python3.8/site-packages/transformers/utils/hub.py", line 426, in cached_file
+    raise EnvironmentError(
+OSError: openai/clip-vit-b-32 is not a local folder and is not a valid model identifier listed on 'https://huggingface.co/models'
+If this is a private repository, make sure to pass a token having permission to this repo either by logging in with `huggingface-cli login` or by passing `token=<your_token>`
+============
+BU:
+  a: sa
+  a_dim: None
+  a_ffdim: None
+  a_layers: 1
+  a_nhead: 8
+  dropout: None
+  f: None
+  f_dim: None
+  f_layers: 10
+  f_ln: None
+  f_ngp: None
+  hid_dim: None
+  s_layers: 1
+Bi:
+  a: sca
+  a_dim: 512
+  a_ffdim: 512
+  a_layers: 6
+  a_nhead: 8
+  dropout: 0.0
+  f: m2
+  f_dim: 512
+  f_layers: 10
+  f_ln: False
+  f_ngp: 1
+  hid_dim: 512
+Bu:
+  a: sa
+  a_dim: None
+  a_ffdim: None
+  a_layers: 1
+  a_nhead: 8
+  dropout: None
+  f: None
+  f_dim: None
+  f_layers: 10
+  f_ln: None
+  f_ngp: None
+  hid_dim: None
+CLIP:
+  model_name: openai/clip-vit-b-32
+  precompute_text: True
+  projection_dropout: 0.1
+  projection_hidden_dim: 1024
+  temp: 0.07
+  text_trainable: True
+  use_prompt: True
+FACT:
+  block: iuUU
+  cmr: 0.3
+  fpos: False
+  mwt: 0.1
+  ntoken: 40
+  trans: False
+Loss:
+  a2fc: 1.0
+  bgw: 1.0
+  match: o2o
+  nullw: -1.0
+  pc: 0.2
+  sw: 5.0
+TM:
+  inplace: True
+  m: 5
+  p: 0.05
+  t: 30
+  use: True
+aux:
+  cfg_file: ['src/configs/openvocab_havid_view0_lh_pt.yaml']
+  debug: False
+  eval_every: 2000
+  exp: openvocab_havid_view0_lh_pt-openvocab_view0_lh_pt
+  gpu: 0
+  logdir: log/havid_view0_lh_pt/split1/openvocab_havid_view0_lh_pt_openvocab_view0_lh_pt/0
+  mark: openvocab_view0_lh_pt
+  print_every: 1000
+  resume: max
+  runid: 0
+  set_cfgs: None
+  wandb_offline: False
+  wandb_project: FACT-OpenVocab
+  wandb_user: 
+average_transcript_len: 0.0
+batch_size: 2
+bg_class: 0
+clip_grad_norm: 10.0
+dataset: havid_view0_lh_pt
+epoch: 150
+eval_bg: True
+feature_path: /cvhci/temp/lthomaz/models/FACT_actseg/data/HAViD/ActionSegmentation/data/features
+feature_transpose: False
+groundTruth_path: /cvhci/temp/lthomaz/models/FACT_actseg/data/HAViD/ActionSegmentation/data/view0_lh_pt/groundTruth
+holdout_classes: []
+holdout_mode: False
+lr: 0.0001
+lr_decay: 80
+map_fname: /cvhci/temp/lthomaz/models/FACT_actseg/data/HAViD/ActionSegmentation/data/view0_lh_pt/mapping.txt
+momentum: 0.0
+optimizer: Adam
+split: split1
+split_path: /cvhci/temp/lthomaz/models/FACT_actseg/data/HAViD/ActionSegmentation/data/view0_lh_pt/splits
+sr: 1
+weight_decay: 0.0
+============
+Saving log at /cvhci/temp/lthomaz/models/FACT_actseg/log/havid_view0_lh_pt/split1/openvocab_havid_view0_lh_pt_openvocab_view0_lh_pt/0
+
+================================================================================
+LOADING OPEN-VOCABULARY DATASET
+================================================================================
+Loading Feature from /cvhci/temp/lthomaz/models/FACT_actseg/data/HAViD/ActionSegmentation/data/features
+Loading Label from /cvhci/temp/lthomaz/models/FACT_actseg/data/HAViD/ActionSegmentation/data/view0_lh_pt/groundTruth
+
+Dataset: havid_view0_lh_pt
+Generated 75 action descriptions:
+  ibacb                -> a person inserts a ball into cb
+  ibscb                -> a person inserts a ball seat into cb
+  icbbs                -> a person inserts a cylinder base into bs
+  icbck                -> a person inserts a cylinder base into ck
+  icccb                -> a person inserts a cylinder cap into cb
+  iccck                -> a person inserts a cylinder cap into ck
+  ickcb                -> a person inserts a cylinder bracket into cb
+  ickcc                -> a person inserts a cylinder bracket into cc
+  iftgl                -> a person inserts a gear shaft into gl
+  iglft                -> a person inserts a large gear into ft
+  ... and 65 more
+Pre-computing text embeddings for 75 action classes...
+Warning: Failed to pre-compute text embeddings: openai/clip-vit-b-32 is not a local folder and is not a valid model identifier listed on 'https://huggingface.co/models'
+If this is a private repository, make sure to pass a token having permission to this repo either by logging in with `huggingface-cli login` or by passing `token=<your_token>`
+Will compute them during training instead.
+
+Visual feature dim: 2048
+Number of action classes: 75
+Train dataset < Dataset 161 videos, 2048 feat-size, 75 classes >
+Test dataset  < Dataset 41 videos, 2048 feat-size, 75 classes >
+================================================================================
+
+================================================================================
+CREATING OPEN-VOCABULARY FACT MODEL
+================================================================================
