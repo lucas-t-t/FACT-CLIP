@@ -142,7 +142,7 @@ See the README files in each subdirectory for detailed documentation:
 - [`fact_clip/utils/README.md`](fact_clip/utils/README.md) - Utilities and dataset handling
 - [`fact_clip/configs/README.md`](fact_clip/configs/README.md) - Configuration system
 
-## Citation
+## Citation for VanillaFACT model
 
 ```bibtex
 @inproceedings{lu2024fact,
@@ -153,6 +153,4 @@ See the README files in each subdirectory for detailed documentation:
 }
 ```
 
-## License
 
-See [LICENSE](LICENSE) for details.
