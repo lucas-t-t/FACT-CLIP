@@ -2,6 +2,8 @@
 
 This repository contains an implementation for zero-shot temporal action segmentation, combining the FACT (Frame-Action Cross-attention Temporal modeling) architecture with CLIP text embeddings for open-vocabulary recognition.
 
+![FACT-CLIP_Architecture](assets/FACT_CLIP_Architecture.png)
+
 ## Overview
 
 The project extends the FACT model (CVPR 2024) to enable zero-shot action segmentation by:
