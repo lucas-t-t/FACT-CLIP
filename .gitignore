@@ -1,22 +1,61 @@
-#Training Data and Logs
-models/FACT_actseg/data/
-models/FACT_actseg/log/
-models/FACT_actseg/log_test/
+# Training Data and Logs
 data/
+logs/
+wandb/
 data.zip
 
-#Environment files
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Package build
+*.egg-info/
+dist/
+build/
+eggs/
+*.egg
+
+# Environment
 miniconda3/
+.env
+.venv
+venv/
+env/
 
-# VSCode and Cursor files
-models/FACT_actseg/src/.vscode/
-models/FACT_actseg/src/.history/
-models/FACT_actseg/src/.cursor/
-models/FACT_actseg/src/.gitignore
-models/FACT_actseg/src/.gitignore
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.cursor/
+.history/
 
-# Cursor rules
-.cursor/rules/
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
 
-# Cursor history
-.cursor/history/
+# Output files
+*.log
+training_output.log
+
+# Temporary files
+*.tmp
+*.bak
+old/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Model checkpoints (optional - uncomment if you don't want to track)
+# *.net
+# *.pt
+# *.pth
+# *.ckpt
+
+# Generated figures
+assets/figures/*.png

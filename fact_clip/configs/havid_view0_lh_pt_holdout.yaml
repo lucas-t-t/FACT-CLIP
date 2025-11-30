@@ -1,0 +1,129 @@
+# HAViD view0_lh_pt Holdout Training Configuration
+# Zero-shot baseline: Train on seen classes, evaluate on all classes including unseen
+#
+# Selection Strategy: Skip top 5 most frequent, then select next 6 + 4 medium-frequency
+#
+# Holdout Classes (10 total - 6 from ranks 6-11 + 4 medium-frequency):
+#   9: iglft (2305 train frames, 781 test frames, 10 test videos)
+#   15: isbn3 (2311 train frames, 834 test frames, 11 test videos)
+#   47: sftg1 (2203 train frames, 1231 test frames, 10 test videos)
+#   48: sftg1ws (4228 train frames, 1229 test frames, 5 test videos)
+#   49: sftg2 (4679 train frames, 1430 test frames, 9 test videos)
+#   54: sntn5wn (4169 train frames, 916 test frames, 5 test videos)
+#   59: sshc1dh (4113 train frames, 398 test frames, 5 test videos)
+#   62: sshc2dh (4463 train frames, 480 test frames, 5 test videos)
+#   65: sshc3dh (4004 train frames, 390 test frames, 5 test videos)
+#   68: sshc4dh (4288 train frames, 356 test frames, 5 test videos)
+#
+# Kept in Training (Top 5 most frequent - preserved to improve data availability):
+#   51: sntft, 52: sntftwn, 55: sntsb, 71: sspg3dp, 73: sspn4dp
+#
+# Training Impact:
+#   - Holdout classes represent 18.6% of train frames and 16.2% of test frames
+#   - Training videos reduced from 161 to 17 (10.6% remaining) after filtering
+#   - 41% more training data vs selecting top 6 (17 vs 12 videos)
+#   - No data leakage: videos with holdout classes removed from training
+#
+# Note: This strategy balances zero-shot challenge with training data availability by
+# preserving the 5 most frequent classes in training while still holding out 10 classes.
+
+BU:
+  a: sa
+  a_dim: null
+  a_ffdim: null
+  a_layers: 1
+  a_nhead: 8
+  dropout: null
+  f: null
+  f_dim: null
+  f_layers: 10
+  f_ln: null
+  f_ngp: null
+  hid_dim: null
+  s_layers: 1
+Bi:
+  a: sca
+  a_dim: 256
+  a_ffdim: 512
+  a_layers: 6
+  a_nhead: 8
+  dropout: 0.2  # Increased from 0.0 to reduce overfitting
+  f: m
+  f_dim: 256
+  f_layers: 10
+  f_ln: false
+  f_ngp: 1
+  hid_dim: 512
+Bu:
+  a: sa
+  a_dim: null
+  a_ffdim: null
+  a_layers: 1
+  a_nhead: 8
+  dropout: null
+  f: null
+  f_dim: null
+  f_layers: 10
+  f_ln: null
+  f_ngp: null
+  hid_dim: null
+FACT:
+  block: iuUU
+  cmr: 0.3
+  fpos: false
+  mwt: 0.1
+  ntoken: 75  # Keep same as full training - model still predicts all classes
+  trans: false
+Loss:
+  a2fc: 1.0
+  bgw: 1.0
+  match: o2o
+  nullw: -1.0
+  pc: 0.2
+  sw: 5.0
+TM:
+  inplace: true
+  m: 5
+  p: 0.05
+  t: 30
+  use: true
+aux:
+  debug: false
+  eval_every: 100  # Evaluate frequently due to small dataset
+  gpu: 0
+  mark: 'holdout_5classes_with_CLIP_test_new_file_structure'
+  print_every: 50  # More frequent logging for small dataset
+  resume: ''  # Start fresh training with new config
+  runid: 0
+batch_size: 2
+clip_grad_norm: 10.0
+dataset: havid_view0_lh_pt
+epoch: 250  # Increased from 150 for more training with limited data
+eval_bg: true
+
+# Holdout configuration - REDUCED to 5 classes for more training data
+holdout_mode: true
+holdout_classes: [51, 53, 61, 67, 56]  # Optimal Compositional Zero-Shot candidates (High Verb/Obj support)
+
+lr: 0.0001
+lr_decay: 80
+momentum: 0.0
+optimizer: Adam
+split: split1
+sr: 1
+weight_decay: 0.0
+
+# CLIP configuration for open-vocabulary FACT_CLIP
+# Set use_clip: true to enable FACT_CLIP, false for vanilla FACT
+use_clip: true
+CLIP:
+  model_name: "openai/clip-vit-base-patch32"  # Correct transformers identifier for ViT-B/32
+  text_trainable: true
+  temp: 0.1  # Increased from 0.07 to make contrastive learning harder
+  precompute_text: true
+  text_emb_path: null  # Will default to data/havid_view0_lh_pt_text_embeddings.pt
+  contrastive_weight: 0.5  # Increased from 0.5 to emphasize zero-shot learning
+  fact_loss_weight: 0.5  # Decreased from 0.5 to emphasize zero-shot learning
+  projection_hidden_dim: 512
+  use_prompt: true
+
