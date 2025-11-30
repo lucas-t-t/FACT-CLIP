@@ -47,7 +47,7 @@ Bi:
   a_ffdim: 512
   a_layers: 6
   a_nhead: 8
-  dropout: 0.0
+  dropout: 0.2  # Increased from 0.0 to reduce overfitting
   f: m
   f_dim: 256
   f_layers: 10
@@ -72,7 +72,7 @@ FACT:
   cmr: 0.3
   fpos: false
   mwt: 0.1
-  ntoken: 43  # Keep same as full training - model still predicts all classes
+  ntoken: 75  # Keep same as full training - model still predicts all classes
   trans: false
 Loss:
   a2fc: 1.0
@@ -89,21 +89,21 @@ TM:
   use: true
 aux:
   debug: false
-  eval_every: 100  # Reduced for small dataset (17 videos = 8 batches/epoch)
+  eval_every: 100  # Evaluate frequently due to small dataset
   gpu: 0
-  mark: 'holdout_new_classes'
+  mark: 'holdout_5classes_without_CLIP'
   print_every: 50  # More frequent logging for small dataset
-  resume: max
+  resume: ''  # Start fresh training with new config
   runid: 0
 batch_size: 2
 clip_grad_norm: 10.0
 dataset: havid_view0_lh_pt
-epoch: 150
+epoch: 250  # Increased from 150 for more training with limited data
 eval_bg: true
 
-# Holdout configuration
+# Holdout configuration - REDUCED to 5 classes for more training data
 holdout_mode: true
-holdout_classes: [9, 15, 47, 48, 49, 54, 59, 62, 65, 68]
+holdout_classes: [51, 53, 61, 67, 56]  # Optimal Compositional Zero-Shot candidates (High Verb/Obj support)
 
 lr: 0.0001
 lr_decay: 80
@@ -112,4 +112,18 @@ optimizer: Adam
 split: split1
 sr: 1
 weight_decay: 0.0
+
+# CLIP configuration for open-vocabulary FACT_CLIP
+# Set use_clip: true to enable FACT_CLIP, false for vanilla FACT
+use_clip: false
+CLIP:
+  model_name: "openai/clip-vit-base-patch32"  # Correct transformers identifier for ViT-B/32
+  text_trainable: true
+  temp: 0.1  # Increased from 0.07 to make contrastive learning harder
+  precompute_text: true
+  text_emb_path: null  # Will default to data/havid_view0_lh_pt_text_embeddings.pt
+  contrastive_weight: 0.5  # Increased from 0.5 to emphasize zero-shot learning
+  fact_loss_weight: 0.5  # Decreased from 0.5 to emphasize zero-shot learning
+  projection_hidden_dim: 512
+  use_prompt: true
 

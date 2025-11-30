@@ -129,7 +129,7 @@ if __name__ == '__main__':
                 group=cfg.aux.exp, resume="allow",
                 config=cfg2flatdict(cfg),
                 reinit=True, save_code=False,
-                mode="offline" if cfg.aux.debug else "online",
+                mode="offline" if (cfg.aux.debug or cfg.aux.wandb_offline) else "online",
                 )
 
     argSaveFile = os.path.join(logdir, 'args.json')
@@ -147,12 +147,60 @@ if __name__ == '__main__':
     print('Test dataset ', test_dataset)
 
     ### create network #########################################################
-    if cfg.dataset == 'epic':
-        from .models.blocks_SepVerbNoun import FACT
-        net = FACT(cfg, dataset.input_dimension, 98, 301)
+    # Check if using CLIP version (default to False for backward compatibility)
+    use_clip = getattr(cfg, 'use_clip', False) or getattr(cfg.CLIP, 'enabled', False)
+    
+    if use_clip:
+        print("="*80)
+        print("CREATING FACT_CLIP MODEL (Open-Vocabulary)")
+        print("="*80)
+        
+        # Load action mapping for text description generation
+        from .utils.dataset import load_action_mapping
+        BASE = get_project_base()
+        
+        # Determine mapping file path
+        if cfg.map_fname:
+            map_fname = cfg.map_fname
+        elif cfg.dataset.startswith('havid'):
+            variant = cfg.dataset.replace("havid_", "")
+            map_fname = os.path.join(BASE, 'data', 'HAViD', 'ActionSegmentation', 'data', variant, 'mapping.txt')
+        else:
+            map_fname = None
+        
+        text_embeddings = None
+        if map_fname and os.path.exists(map_fname):
+            label2index, index2label = load_action_mapping(map_fname)
+            
+            # Get or compute text embeddings
+            from .utils.text_embeddings import get_or_compute_text_embeddings
+            try:
+                text_embeddings = get_or_compute_text_embeddings(
+                    cfg, label2index, index2label, device=f'cuda:{cfg.aux.gpu}'
+                )
+            except Exception as e:
+                print(f"Warning: Failed to load/compute text embeddings: {e}")
+                print("Continuing without text embeddings (contrastive loss will be disabled)")
+        else:
+            print(f"Warning: Mapping file not found at {map_fname if map_fname else 'default path'}")
+            print("Continuing without text embeddings (contrastive loss will be disabled)")
+        
+        # Import and create FACT_CLIP model
+        if cfg.dataset == 'epic':
+            raise ValueError("FACT_CLIP not yet supported for epic dataset")
+        else:
+            from .models.blocks import FACT_CLIP
+            net = FACT_CLIP(cfg, dataset.input_dimension, dataset.nclasses, text_embeddings=text_embeddings)
+        
+        print("="*80 + "\n")
     else:
-        from .models.blocks import FACT
-        net = FACT(cfg, dataset.input_dimension, dataset.nclasses)
+        # Use vanilla FACT model
+        if cfg.dataset == 'epic':
+            from .models.blocks_SepVerbNoun import FACT
+            net = FACT(cfg, dataset.input_dimension, 98, 301)
+        else:
+            from .models.blocks import FACT
+            net = FACT(cfg, dataset.input_dimension, dataset.nclasses)
 
     if cfg.Loss.nullw == -1:
         compute_null_weight(cfg, dataset)
@@ -233,6 +281,13 @@ if __name__ == '__main__':
                 for k, v in ckpt.loss.items():
                     log_dict[f"train-loss/{k}"] = v
                     string += f"{k}:{v:.1f}, "
+                
+                # Log individual FACT and contrastive losses if available (for FACT_CLIP)
+                if use_clip and hasattr(net, 'fact_loss') and hasattr(net, 'contrastive_loss'):
+                    # These are from the last forward pass
+                    log_dict["train-loss/fact_loss"] = net.fact_loss.item() if hasattr(net, 'fact_loss') else 0
+                    log_dict["train-loss/contrastive_loss"] = net.contrastive_loss.item() if hasattr(net, 'contrastive_loss') else 0
+                
                 print(string)
 
                 string = " " * _L 

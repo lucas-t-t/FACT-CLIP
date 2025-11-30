@@ -145,14 +145,43 @@ if __name__ == "__main__":
     print("Testing HA-ViD Label Parsing & Prompt Generation")
     print("="*60)
     
-    # Test labels
-    test_labels = ["sshc1dh", "pglg1", "ishc3"]
+    # Try to find mapping file
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    # Assuming structure models/FACT_actseg/src/utils/test_havid_prompt_conversion.py
+    # We want models/FACT_actseg/data/HAViD/ActionSegmentation/data/view0_lh_pt/mapping.txt
+    project_root = os.path.dirname(os.path.dirname(script_dir))
     
+    mapping_path = os.path.join(project_root, "data", "HAViD", "ActionSegmentation", "data", "view0_lh_pt", "mapping.txt")
+    
+    test_labels = []
+    
+    if os.path.exists(mapping_path):
+        print(f"Loading labels from: {mapping_path}")
+        with open(mapping_path, 'r') as f:
+            for line in f:
+                parts = line.strip().split()
+                if len(parts) >= 2:
+                    test_labels.append(parts[1])
+    else:
+        print(f"[WARNING] Mapping file not found at {mapping_path}")
+        print("Falling back to default test labels.")
+        test_labels = ["sshc1dh", "pglg1", "ishc3"]
+
+    print("\nGenerating prompts for all labels:")
+    print("-" * 60)
     for l in test_labels:
+        prompt = generate_action_prompt(l)
+        print(f'"{l}" -> "{prompt}"')
+    print("-" * 60)
+
+    # Detailed breakdown for the first few
+    print("\nDetailed breakdown for first 3 labels:")
+    for l in test_labels[:3]:
         print_breakdown(l)
         print("-" * 40)
     
     # Use the first prompt for CLIP test
-    first_prompt = generate_action_prompt(test_labels[0])
-    test_clip_embedding(first_prompt)
+    if test_labels:
+        first_prompt = generate_action_prompt(test_labels[0])
+        test_clip_embedding(first_prompt)
 

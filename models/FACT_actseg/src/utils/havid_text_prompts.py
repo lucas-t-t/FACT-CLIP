@@ -46,23 +46,11 @@ VERB_PREP = {
     'screws': 'into',
 }
 
-# Manipulated objects (subset shown in the figure; add more as needed)
-MANIPULATED_OBJECT_MAP = {
-    # screws, bolts, nuts
-    'sh': 'hex screw',
-    'sp': 'phillips screw',
-    'sb': 'bolt',
-    'nt': 'nut',
-
-    # gears & gear plates
-    'gl': 'large gear',
-    'gs': 'small gear',
-    'gw': 'worm gear',
-    'g1': 'gear plate hole 1',
-    'g2': 'gear plate hole 2',
-    'g3': 'gear plate hole 3',
-
-    # cylinder assembly parts
+# Objects (from the figure)
+OBJECTS_MAP = {
+    'ba': 'ball',
+    'bs': 'ball seat',
+    'bx': 'box',
     'c1': 'cylinder plate hole 1',
     'c2': 'cylinder plate hole 2',
     'c3': 'cylinder plate hole 3',
@@ -71,58 +59,48 @@ MANIPULATED_OBJECT_MAP = {
     'cc': 'cylinder cap',
     'ck': 'cylinder bracket',
     'cs': 'cylinder subassembly',
-
-    # general plate holes / studs
+    'dh': 'hex screwdriver',
+    'dp': 'philips screwdriver',
+    'ft': 'gear shaft',
+    'g1': 'gear plate hole 1',
+    'g2': 'gear plate hole 2',
+    'g3': 'gear plate hole 3',
+    'gl': 'large gear',
+    'gs': 'small gear',
+    'gw': 'worm gear',
+    'hd': 'dial',
+    'hq': 'quarter-turn handle',
+    'hw': 'hand-wheel',
+    'ib': 'bar',
+    'n6': 'general plate usb female',
+    'nt': 'nut',
+    'pl': 'large spacer',
+    'ps': 'small spacer',
+    'sb': 'bolt',
+    'ir': 'rod',
+    'lb': 'linear bearing',
     'n1': 'general plate hole 1',
     'n2': 'general plate hole 2',
     'n3': 'general plate hole 3',
     'n4': 'general plate hole 4',
     'n5': 'general plate stud',
-    'n6': 'general plate usb female',
-
-    # spacers
-    'pl': 'large spacer',
-    'ps': 'small spacer',
-
-    # tools can sometimes be manipulated (appear in object list in figure)
-    'dh': 'hex screwdriver',
-    'dp': 'phillips screwdriver',
+    'sh': 'hex screw',
+    'sp': 'philips screw',
+    'us': 'usb male',
     'wn': 'nut wrench',
     'ws': 'shaft wrench',
-
-    # misc parts shown
-    'ba': 'ball',
-    'bs': 'ball seat',
-    'bx': 'box',
-    'ft': 'gear shaft',
-    'hd': 'dial',
-    'hw': 'hand-wheel',
-    'hq': 'quarter-turn handle',
-    'ib': 'bar',
-    'ir': 'rod',
-    'lb': 'linear bearing',
-    'us': 'usb male',
 }
+
+# Manipulated objects (subset shown in the figure; add more as needed)
+MANIPULATED_OBJECT_MAP = OBJECTS_MAP
 
 # Targets (the same IDs can be targets; most common ones from the figure)
-TARGET_OBJECT_MAP = {
-    'c1': 'cylinder plate hole 1',
-    'c2': 'cylinder plate hole 2',
-    'c3': 'cylinder plate hole 3',
-    'c4': 'cylinder plate hole 4',
-    'g1': 'gear plate hole 1',
-    'g2': 'gear plate hole 2',
-    'g3': 'gear plate hole 3',
-    'n1': 'general plate hole 1',
-    'n2': 'general plate hole 2',
-    'n3': 'general plate hole 3',
-    'n4': 'general plate hole 4',
-}
+TARGET_OBJECT_MAP = OBJECTS_MAP
 
 # Tools
 TOOL_MAP = {
     'dh': 'hex screwdriver',
-    'dp': 'phillips screwdriver',
+    'dp': 'philips screwdriver',
     'wn': 'nut wrench',
     'ws': 'shaft wrench',
 }

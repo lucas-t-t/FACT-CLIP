@@ -34,6 +34,9 @@ _C.average_transcript_len = 0.0
 _C.holdout_mode = False # enable holdout training mode
 _C.holdout_classes = [] # list of class indices to hold out during training
 
+# model version selection
+_C.use_clip = False # use FACT_CLIP (open-vocabulary) instead of vanilla FACT
+
 # training
 _C.batch_size = 4
 _C.optimizer = "SGD"
@@ -131,14 +134,17 @@ TM.inplace = True
 #########################
 # CLIP configuration for open-vocabulary model
 _C.CLIP = CLIP = CN()
-CLIP.model_name = "openai/clip-vit-b-32"
+CLIP.model_name = "openai/clip-vit-base-patch32"  # Correct transformers identifier for ViT-B/32
 CLIP.text_trainable = True  # Fine-tune CLIP text encoder
-CLIP.temp = 0.07  # Initial temperature (learnable)
+CLIP.temp = 0.07  # Temperature for InfoNCE loss
 CLIP.precompute_text = True  # Pre-compute text embeddings
 CLIP.use_prompt = True  # Use prompt engineering
+CLIP.text_emb_path = None  # Path to save/load pre-computed embeddings
+CLIP.contrastive_weight = 0.5  # Weight for contrastive loss
+CLIP.fact_loss_weight = 0.5  # Weight for FACT loss
 
 # Visual projection settings
-CLIP.projection_hidden_dim = 1024  # Hidden layer in projection
+CLIP.projection_hidden_dim = 512  # Hidden layer in projection
 CLIP.projection_dropout = 0.1  # Dropout in projection
 
 def get_cfg_defaults():

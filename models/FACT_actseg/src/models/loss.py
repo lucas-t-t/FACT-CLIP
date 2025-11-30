@@ -275,4 +275,111 @@ class MatchCriterion():
         seg_loss = seg_loss.sum(-1).sum() / zoomed_label.sum()
 
         return seg_loss
+
+
+def infonce_contrastive_loss(projected_embeddings, text_embeddings, labels, temperature=0.07):
+    """
+    InfoNCE contrastive loss between projected frame embeddings and CLIP text embeddings.
     
+    Args:
+        projected_embeddings: (T, B, clip_dim) - projected frame embeddings in CLIP space
+        text_embeddings: (n_classes, clip_dim) - CLIP text embeddings for all classes
+        labels: (T,) - ground truth class labels for each frame (B=1 in FACT)
+        temperature: float - temperature scaling parameter
+    
+    Returns:
+        loss: scalar - InfoNCE contrastive loss
+    """
+    T, B, clip_dim = projected_embeddings.shape
+    n_classes = text_embeddings.shape[0]
+    
+    # FACT processes videos one at a time (B=1), so squeeze batch dimension
+    # Reshape to (T, clip_dim) for processing
+    frame_emb = projected_embeddings.squeeze(1)  # (T, 512) if B=1, else (T*B, 512)
+    if B > 1:
+        frame_emb = frame_emb.view(-1, clip_dim)  # (T*B, 512)
+    
+    text_emb = text_embeddings  # (n_classes, 512)
+    
+    # Compute similarity matrix: (T, n_classes) or (T*B, n_classes)
+    # Cosine similarity (embeddings are already normalized)
+    similarity = torch.matmul(frame_emb, text_emb.t()) / temperature  # (T, n_classes) or (T*B, n_classes)
+    
+    # Handle labels - should be (T,) for B=1
+    if labels.dim() == 1:
+        labels_flat = labels  # (T,)
+    else:
+        labels_flat = labels.view(-1)  # (T*B,)
+    
+    # Ensure labels match frame_emb shape
+    if labels_flat.shape[0] != frame_emb.shape[0]:
+        # Repeat labels for batch if needed
+        labels_flat = labels_flat.repeat(B)
+    
+    # Video-to-text loss: for each frame, maximize similarity with correct class
+    # Cross-entropy loss where target is the correct class
+    v2t_loss = F.cross_entropy(similarity, labels_flat)
+    
+    # Text-to-video loss: for each class, maximize similarity with frames of that class
+    # Create one-hot targets: (T, n_classes) or (T*B, n_classes)
+    targets = F.one_hot(labels_flat, num_classes=n_classes).float()
+    
+    # Compute log probabilities
+    log_probs = F.log_softmax(similarity.t(), dim=1)  # (n_classes, T) or (n_classes, T*B)
+    
+    # Weight by number of frames per class (to handle class imbalance)
+    class_counts = targets.sum(dim=0)  # (n_classes,)
+    class_counts = torch.clamp(class_counts, min=1.0)  # Avoid division by zero
+    
+    # Compute per-class loss
+    t2v_loss_per_class = -(log_probs * targets.t()).sum(dim=1) / class_counts  # (n_classes,)
+    t2v_loss = t2v_loss_per_class.mean()
+    
+    # Average both directions
+    loss = (v2t_loss + t2v_loss) / 2.0
+    
+    return loss
+
+
+def action_token_contrastive_loss(projected_action_tokens, text_embeddings, 
+                                   match, transcript, temperature=0.07):
+    """
+    Contrastive loss between action tokens and text embeddings.
+    Uses FACT's bipartite matching to align tokens with ground-truth segments.
+    
+    This loss enables zero-shot generalization by aligning class-agnostic action 
+    token features with CLIP text embeddings in a semantic space.
+    
+    Args:
+        projected_action_tokens: (M, B, 512) - action tokens projected to CLIP space
+        text_embeddings: (n_classes, 512) - CLIP text embeddings for all classes
+        match: (action_ind, seg_ind) - bipartite matching from FACT
+        transcript: (S,) - ground truth segment labels (class indices)
+        temperature: float - temperature scaling parameter for softmax
+    
+    Returns:
+        loss: scalar - symmetric contrastive loss (action→text + text→action)
+    """
+    action_ind, seg_ind = match
+    M, B, clip_dim = projected_action_tokens.shape
+    
+    # Extract matched action tokens and their ground-truth text embeddings
+    # action_ind: indices of action tokens matched to segments
+    # seg_ind: indices of segments in the transcript
+    matched_action_emb = projected_action_tokens[action_ind].squeeze(1)  # (S, 512)
+    matched_text_emb = text_embeddings[transcript[seg_ind]]  # (S, 512)
+    
+    # Compute similarity matrix: (S, S)
+    # similarity[i, j] = cosine_similarity(action_i, text_j) / temperature
+    similarity = torch.matmul(matched_action_emb, matched_text_emb.t()) / temperature
+    
+    # Positive pairs are on the diagonal (action_i should align with text_i)
+    # For each action token, the correct text embedding is at the same index
+    targets = torch.arange(len(seg_ind)).to(similarity.device)
+    
+    # Symmetric contrastive loss
+    loss_a2t = F.cross_entropy(similarity, targets)  # action→text: predict which text for each action
+    loss_t2a = F.cross_entropy(similarity.t(), targets)  # text→action: predict which action for each text
+    
+    return (loss_a2t + loss_t2a) / 2.0
+     

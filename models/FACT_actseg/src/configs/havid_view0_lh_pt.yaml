@@ -39,11 +39,11 @@ Bu:
   f_ngp: null
   hid_dim: null
 FACT:
-  block: iuUU
+  block: iuUU #Temporal down/up-sample block
   cmr: 0.3
   fpos: false
   mwt: 0.1
-  ntoken: 43
+  ntoken: 28 #number of classes in the dataset
   trans: false
 Loss:
   a2fc: 1.0
@@ -62,7 +62,7 @@ aux:
   debug: false
   eval_every: 500 #was 100, then 2000, then 1000, now 500
   gpu: 0
-  mark: 'view0_lh_pt_clean_eval_500'
+  mark: 'view0_lh_pt_clean_eval_1000_ntoken_28'
   print_every: 50 #was 50, then 200, then 100, now 50
   resume: max
   runid: 0
