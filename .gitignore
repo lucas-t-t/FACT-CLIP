@@ -1,5 +1,6 @@
 # Training Data and Logs
 data/
+log/
 logs/
 wandb/
 data.zip
